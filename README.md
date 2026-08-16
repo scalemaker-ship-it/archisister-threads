@@ -77,8 +77,8 @@ python threads_post.py --dry-run   # 토큰 불필요. 오늘 요일 기준으�
 6. USER_ID 확인 후 GitHub Secrets 등록:
    ```bash
    curl -s "https://graph.threads.net/v1.0/me?fields=id,username&access_token=<토큰>"
-   gh secret set THREADS_USER_ID --repo scalemaker-ship-it/<이 저장소>
-   gh secret set THREADS_ACCESS_TOKEN --repo scalemaker-ship-it/<이 저장소>
+   gh secret set THREADS_USER_ID --repo scalemaker-ship-it/archisister-threads
+   gh secret set THREADS_ACCESS_TOKEN --repo scalemaker-ship-it/archisister-threads
    ```
 
 > ⚠️ Threads 토큰은 발급 후 약 60일 뒤 만료됩니다. 만료되면 5~6단계를 반복하세요.
