@@ -92,8 +92,13 @@ def load_pinned_post(today: str) -> dict | None:
 
 
 def _create_container(user_id: str, access_token: str, text: str,
-                       reply_to_id: str | None = None) -> str:
-    payload = {"media_type": "TEXT", "text": text, "access_token": access_token}
+                       reply_to_id: str | None = None,
+                       image_url: str | None = None) -> str:
+    if image_url:
+        payload = {"media_type": "IMAGE", "image_url": image_url, "text": text,
+                   "access_token": access_token}
+    else:
+        payload = {"media_type": "TEXT", "text": text, "access_token": access_token}
     if reply_to_id:
         payload["reply_to_id"] = reply_to_id
     resp = requests.post(f"{THREADS_API}/{user_id}/threads", json=payload, timeout=30)
@@ -112,9 +117,10 @@ def _publish(user_id: str, access_token: str, creation_id: str) -> str:
 
 
 def publish_one(user_id: str, access_token: str, text: str,
-                 reply_to_id: str | None = None, wait: int = 30) -> str:
+                 reply_to_id: str | None = None, wait: int = 30,
+                 image_url: str | None = None) -> str:
     """컨테이너 생성 → 대기 → 발행. 게시물 ID 반환."""
-    creation_id = _create_container(user_id, access_token, text, reply_to_id)
+    creation_id = _create_container(user_id, access_token, text, reply_to_id, image_url)
     time.sleep(wait)  # Threads 권장 대기
     return _publish(user_id, access_token, creation_id)
 
@@ -122,9 +128,11 @@ def publish_one(user_id: str, access_token: str, text: str,
 def post_to_threads(user_id: str, access_token: str, post: dict) -> str:
     """main → thread_chain(자기 답글 체인) → first_comment(답글) 순으로 게시.
 
+    post에 image_url이 있으면 main 게시물에 이미지를 첨부한다.
     main 게시물 ID를 반환한다.
     """
-    main_id = publish_one(user_id, access_token, post["main"])
+    main_id = publish_one(user_id, access_token, post["main"],
+                           image_url=post.get("image_url"))
     print(f"  main 게시 완료: {main_id}")
 
     prev_id = main_id
