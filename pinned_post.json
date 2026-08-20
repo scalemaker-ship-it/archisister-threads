@@ -1,11 +1,24 @@
-{
-  "date": "2026-08-21",
-  "image_url": "https://mblogthumb-phinf.pstatic.net/MjAyNjA4MjBfMjIg/MDAxNzg3MjAyMTk3ODky.4LQn5GJttTjnR2mbvtJ1GDv3FoBHzo6MkRfQ82X9bdgg.2La7RC83GvSMv5CE307HZNhJuBLlBlPa4Uu2UTbAV5Ug.JPEG/02_boundary_diagram.jpg?type=w800",
-  "main": "\"우리 건물도 호스텔 될까요?\"\n요즘 가장 많이 받는 질문이에요.\n\n판단 기준은 딱 3가지,\n숫자로 정리해드릴게요.",
-  "thread_chain": [
-    "1. 도로 조건\n\n건물 앞에 폭 8m 도로가\n4m 이상 접해 있어야 해요.\n\n이게 안 되면\n법적으로 아예 불가능합니다.",
-    "2. 인접 대지 경계선\n\n대지 경계선에서 내 건물까지\n1m 이상 확보돼야 해요.\n\n옆 건물과의 거리가 아니라\n'대지 경계선'이 기준인데,\n여기서 헷갈려하시는 분들\n정말 많더라고요.",
-    "3. 이격거리\n\n건물 높이의 절반만큼\n경계선에서 떨어져 있어야 해요.\n\n서울에서 이 조건 맞는 건물,\n사실 많지 않아요.\n안 되면 창문을 막는 '차폐'로\n해결하는데, 채광·피난 문제가\n또 얽혀서 결국 설계사무소\n검토가 필요해집니다."
-  ],
-  "first_comment": "이 3가지 조건 자세한 판단법,\n프로필 링크에 정리해두고 있어요."
-}
+[
+  {
+    "date": "2026-08-21",
+    "image_url": "https://mblogthumb-phinf.pstatic.net/MjAyNjA4MjBfMjIg/MDAxNzg3MjAyMTk3ODky.4LQn5GJttTjnR2mbvtJ1GDv3FoBHzo6MkRfQ82X9bdgg.2La7RC83GvSMv5CE307HZNhJuBLlBlPa4Uu2UTbAV5Ug.JPEG/02_boundary_diagram.jpg?type=w800",
+    "main": "\"우리 건물도 호스텔 될까요?\"\n요즘 가장 많이 받는 질문이에요.\n\n판단 기준은 딱 3가지,\n숫자로 정리해드릴게요.",
+    "thread_chain": [
+      "1. 도로 조건\n\n건물 앞에 폭 8m 도로가\n4m 이상 접해 있어야 해요.\n\n이게 안 되면\n법적으로 아예 불가능합니다.",
+      "2. 인접 대지 경계선\n\n대지 경계선에서 내 건물까지\n1m 이상 확보돼야 해요.\n\n옆 건물과의 거리가 아니라\n'대지 경계선'이 기준인데,\n여기서 헷갈려하시는 분들\n정말 많더라고요.",
+      "3. 이격거리\n\n건물 높이의 절반만큼\n경계선에서 떨어져 있어야 해요.\n\n서울에서 이 조건 맞는 건물,\n사실 많지 않아요.\n안 되면 창문을 막는 '차폐'로\n해결하는데, 채광·피난 문제가\n또 얽혀서 결국 설계사무소\n검토가 필요해집니다."
+    ],
+    "first_comment": "이 3가지 조건 자세한 판단법,\n프로필 링크에 정리해두고 있어요."
+  },
+  {
+    "date": "2026-08-24",
+    "image_url": "https://mblogthumb-phinf.pstatic.net/MjAyNjA4MTZfNTIg/MDAxNzg2ODU4NDIzNDA3.lX8G0Ksvu2_6J5HwJDHM5sWNEWuAg5Cjsbst2mIx9SYg.9bKlvZLzAKI-GkIIZhz9Yx8VgIlXePcZYHlyd1vHq6Yg.JPEG/03_income_compare.jpg?type=w800",
+    "main": "\"월세 200만원 받던 건물이\n용도변경 하나로\n월 1,000만원이 됐어요.\"\n\n실제 제 고객님 사례예요.",
+    "thread_chain": [
+      "건물은 그대로 두고\n등록된 '용도'만 바꾼 거예요.\n\n상가 → 관광숙박시설(호스텔)로요.\n\n신축·대수선보다 훨씬 적은 비용으로\n수익 구조 자체를 바꿀 수 있어서\n요즘 문의가 정말 많아요.",
+      "계산해볼게요.\n\n10만원 객실 5개,\n한 달 내내 운영하면\n매출 1,500만원.\n\n인건비·관리비 빼도\n순수익 900~1,000만원\n나오는 구조예요.",
+      "다만 아무 건물이나\n되는 건 아니에요.\n\n건물 앞에 폭 8m 도로가\n4m 이상 접해야 하고,\n대지 경계선·이격거리 조건도\n따로 맞춰야 하거든요.\n\n그래서 시작 전에\n꼭 진단부터 받아보시길\n추천드려요."
+    ],
+    "first_comment": "용도변경 가능 여부 진단법,\n프로필 링크에 정리해두고 있어요."
+  }
+]

@@ -71,24 +71,30 @@ def load_queue() -> list[dict]:
 
 
 def load_pinned_post(today: str) -> dict | None:
-    """레포 루트의 pinned_post.json 의 date(KST, YYYY-MM-DD)가 오늘과 같으면
-    큐 대신 이 글을 그대로 게시한다. 날짜가 지나면 자동으로 큐로 복귀한다."""
+    """레포 루트의 pinned_post.json 중 date(KST, YYYY-MM-DD)가 오늘과 같은 글이
+    있으면 큐 대신 그 글을 그대로 게시한다. 날짜가 지나면 자동으로 큐로 복귀한다.
+
+    파일은 단일 글({...})이거나, 여러 예약 글의 배열([{...}, {...}])일 수 있다.
+    """
     if not os.path.exists(_PINNED_PATH):
         return None
     try:
         with open(_PINNED_PATH, encoding="utf-8") as fp:
-            data = json.load(fp)
+            raw = json.load(fp)
     except (OSError, json.JSONDecodeError) as exc:
         print(f"[경고] pinned_post.json 읽기 실패 → 큐로 진행: {exc}")
         return None
-    if data.get("date") != today:
-        return None
-    if not data.get("main"):
-        print("[경고] pinned_post.json 에 main 이 없어 큐로 진행합니다.")
-        return None
-    data.setdefault("thread_chain", [])
-    data.setdefault("first_comment", "")
-    return data
+    candidates = raw if isinstance(raw, list) else [raw]
+    for data in candidates:
+        if data.get("date") != today:
+            continue
+        if not data.get("main"):
+            print("[경고] pinned_post.json 의 오늘자 항목에 main 이 없어 큐로 진행합니다.")
+            return None
+        data.setdefault("thread_chain", [])
+        data.setdefault("first_comment", "")
+        return data
+    return None
 
 
 def _create_container(user_id: str, access_token: str, text: str,
