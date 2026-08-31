@@ -224,6 +224,26 @@ def main() -> None:
             print(f"  - {t.get('timestamp')} | {t.get('permalink')} | {(t.get('text') or '')[:30]}")
         return
 
+    # REPORT: 게시하지 않고 최근 글 목록을 JSON 으로 덤프(발행 보고서 작성용).
+    if _is_truthy(os.environ.get("REPORT")):
+        uid = require_env("THREADS_USER_ID")
+        tok = require_env("THREADS_ACCESS_TOKEN")
+        fields = "id,permalink,timestamp,text,media_type,media_url,shortcode,is_quote_post"
+        url = f"https://graph.threads.net/v1.0/{uid}/threads"
+        params = {"fields": fields, "limit": 100, "access_token": tok}
+        rows: list[dict] = []
+        while url and len(rows) < 300:
+            r = requests.get(url, params=params, timeout=30)
+            r.raise_for_status()
+            body = r.json()
+            rows.extend(body.get("data", []))
+            url = (body.get("paging") or {}).get("next")
+            params = None
+        print("REPORT_JSON_BEGIN")
+        print(json.dumps(rows, ensure_ascii=False))
+        print("REPORT_JSON_END")
+        return
+
     dry_run = _is_truthy(os.environ.get("DRY_RUN"))
     if dry_run:
         user_id = access_token = ""

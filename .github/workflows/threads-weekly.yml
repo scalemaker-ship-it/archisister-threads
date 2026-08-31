@@ -18,6 +18,10 @@ on:
         description: "게시 안 하고 토큰이 어느 계정인지 확인(진단용)"
         type: boolean
         default: false
+      report:
+        description: "게시 안 하고 최근 글 목록을 JSON 으로 덤프(보고서용)"
+        type: boolean
+        default: false
 
 jobs:
   post:
@@ -54,6 +58,7 @@ jobs:
           THREADS_ACCESS_TOKEN: ${{ secrets.THREADS_ACCESS_TOKEN }}
           DRY_RUN: ${{ inputs.dry_run }}
           CHECK_TOKEN: ${{ inputs.check_token }}
+          REPORT: ${{ inputs.report }}
         run: python threads_post.py
 
       # 발행한 날짜를 기록해 같은 날 중복 발행을 막는다.
