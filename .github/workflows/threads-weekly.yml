@@ -22,6 +22,8 @@ on:
 jobs:
   post:
     runs-on: ubuntu-latest
+    permissions:
+      contents: write
     steps:
       - uses: actions/checkout@v4
 
@@ -36,6 +38,12 @@ jobs:
       - name: 랜덤 지연 (게시 시각 분산)
         if: github.event_name == 'schedule'
         run: |
+          # 크론이 크게 밀려 이미 KST 자정을 넘긴 상태면(12:00 UTC 이후)
+          # 추가 지연 없이 바로 게시한다.
+          if [ "$(date -u +%H)" -ge 12 ]; then
+            echo "크론이 지연돼 이미 KST 자정을 넘겼습니다. 랜덤 지연 없이 바로 게시합니다."
+            exit 0
+          fi
           DELAY=$((RANDOM % 1800))   # 0~30분
           echo "약 $((DELAY / 60))분 대기 후 게시합니다."
           sleep $DELAY
@@ -47,3 +55,17 @@ jobs:
           DRY_RUN: ${{ inputs.dry_run }}
           CHECK_TOKEN: ${{ inputs.check_token }}
         run: python threads_post.py
+
+      # 발행한 날짜를 기록해 같은 날 중복 발행을 막는다.
+      - name: 발행 기록 커밋
+        if: success()
+        run: |
+          if [ -z "$(git status --porcelain -- posted_log.json)" ]; then
+            echo "발행 기록 변경 없음."
+            exit 0
+          fi
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add posted_log.json
+          git commit -m "chore: 발행 기록 갱신"
+          git push

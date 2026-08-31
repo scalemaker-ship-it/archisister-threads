@@ -25,7 +25,7 @@ import json
 import os
 import sys
 import time
-from datetime import datetime
+from datetime import datetime, timedelta
 from zoneinfo import ZoneInfo
 
 import requests
@@ -38,6 +38,50 @@ THREADS_API = "https://graph.threads.net/v1.0"
 _BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 _QUEUE_PATH = os.path.join(_BASE_DIR, "posts_queue.json")
 _PINNED_PATH = os.path.join(_BASE_DIR, "pinned_post.json")
+_POSTED_LOG_PATH = os.path.join(_BASE_DIR, "posted_log.json")
+
+# GitHub 크론이 몇 시간씩 밀려 KST 날짜가 넘어가도, 이 시간 안이면
+# "그 전날(원래 발행일) 몫"으로 인정해 발행한다.
+LATE_RUN_GRACE_HOURS = 12
+
+
+def load_posted_log() -> list[str]:
+    """이미 발행한 날짜(KST, YYYY-MM-DD) 목록. 중복 발행 방지용."""
+    if not os.path.exists(_POSTED_LOG_PATH):
+        return []
+    try:
+        with open(_POSTED_LOG_PATH, encoding="utf-8") as f:
+            data = json.load(f)
+    except (OSError, json.JSONDecodeError) as exc:
+        print(f"[경고] posted_log.json 을 읽지 못했습니다({exc}). 빈 목록으로 진행합니다.")
+        return []
+    return data.get("posted_dates", []) if isinstance(data, dict) else []
+
+
+def record_posted(date_str: str) -> None:
+    dates = load_posted_log()
+    if date_str not in dates:
+        dates.append(date_str)
+    with open(_POSTED_LOG_PATH, "w", encoding="utf-8") as f:
+        json.dump({"posted_dates": dates[-60:]}, f, ensure_ascii=False, indent=2)
+        f.write("\n")
+
+
+def resolve_post_date(now: datetime) -> datetime | None:
+    """발행 대상 날짜를 정한다.
+
+    크론(11:00 UTC = 20:00 KST)이 밀려 자정을 넘겨 실행되는 일이 잦다.
+    오늘이 발행 요일이 아니면, LATE_RUN_GRACE_HOURS 안쪽에서 전날이
+    발행 요일이었는지 보고 그 날 몫으로 발행한다.
+    """
+    if now.isoweekday() in POST_WEEKDAYS:
+        return now
+    earlier = now - timedelta(hours=LATE_RUN_GRACE_HOURS)
+    if earlier.isoweekday() in POST_WEEKDAYS and earlier.date() != now.date():
+        print(f"[지연 실행] 크론이 밀려 {now:%Y-%m-%d %H:%M KST} 에 떴습니다. "
+              f"{earlier:%Y-%m-%d %A} 몫으로 발행합니다.")
+        return earlier
+    return None
 
 
 def require_env(name: str) -> str:
@@ -188,12 +232,17 @@ def main() -> None:
         user_id = require_env("THREADS_USER_ID")
         access_token = require_env("THREADS_ACCESS_TOKEN")
 
-    now = datetime.now(KST)
-    if now.isoweekday() not in POST_WEEKDAYS:
-        print(f"오늘({now:%Y-%m-%d %A})은 게시일이 아닙니다(월/수/금만 게시). 종료합니다.")
+    now = resolve_post_date(datetime.now(KST))
+    if now is None:
+        print(f"오늘({datetime.now(KST):%Y-%m-%d %A})은 게시일이 아닙니다(월/수/금만 게시). 종료합니다.")
         return
 
-    pinned = load_pinned_post(f"{now:%Y-%m-%d}")
+    today = f"{now:%Y-%m-%d}"
+    if not dry_run and today in load_posted_log():
+        print(f"{today} 몫은 이미 발행했습니다(posted_log.json). 중복 발행하지 않고 종료합니다.")
+        return
+
+    pinned = load_pinned_post(today)
     if pinned is not None:
         print(f"[{now:%Y-%m-%d %H:%M KST}] 고정 글(pinned_post.json)을 게시합니다.")
         post = pinned
@@ -218,6 +267,7 @@ def main() -> None:
         return
 
     main_id = post_to_threads(user_id, access_token, post)
+    record_posted(today)
     print(f"게시 완료. 메인 Threads 게시물 ID: {main_id}")
 
 
