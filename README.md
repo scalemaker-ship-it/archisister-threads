@@ -1,4 +1,4 @@
-# 건축언니(@u.nakim) 스레드 자동화
+# 건축언니(@archi.sister) 스레드 자동화
 
 **용도변경·건축 인허가** 실전 정보를 **존댓말 정보형**으로 **월/수/금** 발행하는 자동화입니다.
 
@@ -37,7 +37,7 @@
 
 본문·이어쓰기에는 raw URL이나 카카오톡 링크를 넣지 않고, 첫 댓글에서
 **"프로필 링크"로만 담백하게 유도**합니다. 실제 문의 채널(홈페이지 등)은
-**@u.nakim 계정 바이오**에 걸어두세요.
+**@archi.sister 계정 바이오**에 걸어두세요.
 
 ## 로컬 미리보기 (게시 없이 글만 확인)
 
@@ -67,7 +67,7 @@ python threads_post.py --dry-run   # 토큰 불필요. 오늘 요일 기준으�
 1. [developers.facebook.com/apps](https://developers.facebook.com/apps) 에서
    새 앱 생성 (예: 앱 이름 `건축언니_자동화`).
 2. 앱에 **Threads API** 제품(Use Case) 추가.
-3. **Threads 테스터**로 `@u.nakim` 계정을 등록 → 해당 계정으로 로그인해서
+3. **Threads 테스터**로 `@archi.sister` 계정을 등록 → 해당 계정으로 로그인해서
    테스터 초대를 **수락**해야 합니다(앱 대시보드 또는 Threads 앱 내 알림).
 4. 권한 범위: `threads_basic` + `threads_content_publish`.
 5. 앱 설정 → 이용 사례 → Threads API 액세스 → 설정 페이지 맨 아래
@@ -83,5 +83,5 @@ python threads_post.py --dry-run   # 토큰 불필요. 오늘 요일 기준으�
 
 > ⚠️ Threads 토큰은 발급 후 약 60일 뒤 만료됩니다. 만료되면 5~6단계를 반복하세요.
 
-Meta 앱 생성·테스터 수락은 브라우저에서 `@u.nakim` 계정 로그인 상태가 필요해서
+Meta 앱 생성·테스터 수락은 브라우저에서 `@archi.sister` 계정 로그인 상태가 필요해서
 사람이 직접 하거나, 로그인 세션이 준비되면 브라우저 자동화로 도와드릴 수 있습니다.

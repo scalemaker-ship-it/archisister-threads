@@ -1,4 +1,4 @@
-name: 건축언니(@u.nakim) 스레드 자동 게시 (월/수/금)
+name: 건축언니(@archi.sister) 스레드 자동 게시 (월/수/금)
 
 # 월·수·금 저녁 발행. GitHub Actions 크론은 UTC 기준(KST = UTC+9).
 #   목표 노출: 20:00 KST 무렵. 20:00 KST = 11:00 UTC → "0 11 * * 1,3,5"
