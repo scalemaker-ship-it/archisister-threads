@@ -31,7 +31,8 @@ from zoneinfo import ZoneInfo
 import requests
 
 KST = ZoneInfo("Asia/Seoul")
-POST_WEEKDAYS = {1, 3, 5}  # 월=1 ... 일=7 (datetime.isoweekday 기준). 월/수/금만 게시.
+POST_WEEKDAYS = {1, 3, 5}  # 월=1 ... 일=7 (datetime.isoweekday 기준). 기본은 월/수/금.
+# pinned_post.json 에 날짜가 예약된 글은 요일과 무관하게 그 날 발행한다.
 
 THREADS_API = "https://graph.threads.net/v1.0"
 
@@ -252,17 +253,25 @@ def main() -> None:
         user_id = require_env("THREADS_USER_ID")
         access_token = require_env("THREADS_ACCESS_TOKEN")
 
-    now = resolve_post_date(datetime.now(KST))
-    if now is None:
-        print(f"오늘({datetime.now(KST):%Y-%m-%d %A})은 게시일이 아닙니다(월/수/금만 게시). 종료합니다.")
-        return
+    # pinned_post.json 에 오늘 날짜 글이 예약돼 있으면 요일과 무관하게 발행한다.
+    # (월/수/금 외의 날에도 특정 글을 예약 발행하고 싶을 때 쓰는 경로)
+    raw_now = datetime.now(KST)
+    pinned = load_pinned_post(f"{raw_now:%Y-%m-%d}")
+    if pinned is not None:
+        now = raw_now
+    else:
+        now = resolve_post_date(raw_now)
+        if now is None:
+            print(f"오늘({raw_now:%Y-%m-%d %A})은 게시일이 아닙니다"
+                  f"(월/수/금 + pinned_post.json 예약일만 게시). 종료합니다.")
+            return
+        pinned = load_pinned_post(f"{now:%Y-%m-%d}")
 
     today = f"{now:%Y-%m-%d}"
     if not dry_run and today in load_posted_log():
         print(f"{today} 몫은 이미 발행했습니다(posted_log.json). 중복 발행하지 않고 종료합니다.")
         return
 
-    pinned = load_pinned_post(today)
     if pinned is not None:
         print(f"[{now:%Y-%m-%d %H:%M KST}] 고정 글(pinned_post.json)을 게시합니다.")
         post = pinned
