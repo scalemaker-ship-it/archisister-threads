@@ -240,6 +240,25 @@ def main() -> None:
             rows.extend(body.get("data", []))
             url = (body.get("paging") or {}).get("next")
             params = None
+        # 각 글의 인사이트(조회수·좋아요·댓글·리포스트·인용) — 리포스트는 제외.
+        for row in rows:
+            if row.get("media_type") == "REPOST_FACADE":
+                continue
+            try:
+                ins = requests.get(
+                    f"https://graph.threads.net/v1.0/{row['id']}/insights",
+                    params={"metric": "views,likes,replies,reposts,quotes", "access_token": tok},
+                    timeout=30,
+                )
+                if ins.ok:
+                    row["insights"] = {
+                        m.get("name"): (m.get("values") or [{}])[0].get("value")
+                        for m in ins.json().get("data", [])
+                    }
+                else:
+                    row["insights_error"] = ins.text[:200]
+            except Exception as exc:  # noqa: BLE001
+                row["insights_error"] = str(exc)[:200]
         print("REPORT_JSON_BEGIN")
         print(json.dumps(rows, ensure_ascii=False))
         print("REPORT_JSON_END")
