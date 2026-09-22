@@ -115,11 +115,15 @@ def load_queue() -> list[dict]:
     return posts
 
 
-def load_pinned_post(today: str) -> dict | None:
+def load_pinned_post(today: str, now: datetime | None = None) -> dict | None:
     """레포 루트의 pinned_post.json 중 date(KST, YYYY-MM-DD)가 오늘과 같은 글이
     있으면 큐 대신 그 글을 그대로 게시한다. 날짜가 지나면 자동으로 큐로 복귀한다.
 
     파일은 단일 글({...})이거나, 여러 예약 글의 배열([{...}, {...}])일 수 있다.
+
+    항목에 "post_after": "HH:MM" (KST)가 있으면 그 시각 전에는 아직 아닌
+    것으로 보고 건너뛴다. 저녁 크론이 자정을 넘겨 다음 날 새벽에 떴을 때
+    다음 날 아침 예약 글이 먼저 나가버리는 것을 막는다.
     """
     if not os.path.exists(_PINNED_PATH):
         return None
@@ -136,6 +140,17 @@ def load_pinned_post(today: str) -> dict | None:
         if not data.get("main"):
             print("[경고] pinned_post.json 의 오늘자 항목에 main 이 없어 큐로 진행합니다.")
             return None
+        after = data.get("post_after")
+        if after and now is not None:
+            try:
+                hh, mm = (int(x) for x in str(after).split(":"))
+            except ValueError:
+                print(f"[경고] post_after 값 '{after}' 을 읽지 못해 무시합니다.")
+            else:
+                if (now.hour, now.minute) < (hh, mm):
+                    print(f"[대기] {today} 예약 글은 {after} KST 이후에 발행합니다"
+                          f"(현재 {now:%H:%M} KST).")
+                    continue
         data.setdefault("thread_chain", [])
         data.setdefault("first_comment", "")
         return data
@@ -275,7 +290,7 @@ def main() -> None:
     # pinned_post.json 에 오늘 날짜 글이 예약돼 있으면 요일과 무관하게 발행한다.
     # (월/수/금 외의 날에도 특정 글을 예약 발행하고 싶을 때 쓰는 경로)
     raw_now = datetime.now(KST)
-    pinned = load_pinned_post(f"{raw_now:%Y-%m-%d}")
+    pinned = load_pinned_post(f"{raw_now:%Y-%m-%d}", raw_now)
     if pinned is not None:
         now = raw_now
     else:
@@ -284,7 +299,7 @@ def main() -> None:
             print(f"오늘({raw_now:%Y-%m-%d %A})은 게시일이 아닙니다"
                   f"(월/수/금 + pinned_post.json 예약일만 게시). 종료합니다.")
             return
-        pinned = load_pinned_post(f"{now:%Y-%m-%d}")
+        pinned = load_pinned_post(f"{now:%Y-%m-%d}", now)
 
     today = f"{now:%Y-%m-%d}"
     if not dry_run and today in load_posted_log():
