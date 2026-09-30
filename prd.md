@@ -117,7 +117,7 @@ posted_log.json                    발행한 날짜 기록 (중복 차단, 워�
 images/<video_id>.jpg              영상 자료 화면 캡처 (raw URL 호스팅)
 tools/capture_frames.py            캡처 도구 (sheet / peek / grab)
 docs/글쓰기_가이드.md              톤·CTA·새 글 작성 규칙
-.github/workflows/threads-weekly.yml  크론 + 수동 실행 입력(dry_run/check_token/report)
+.github/workflows/threads-weekly.yml  크론 + 수동 실행 입력(dry_run/check_token/report/delete_ids)
 ```
 
 ## 7. 사실 관계 규칙 ★ (글에 틀린 제도 정보를 올리지 않는다)
@@ -137,3 +137,10 @@ docs/글쓰기_가이드.md              톤·CTA·새 글 작성 규칙
 - `threads_post.py` 의 `KNOWN_TYPOS` 가 **발행 직전마다 큐 전체 + 예약글 전체**를 검사한다. 하나라도 걸리면 **아무것도 게시하지 않고 실패**(GitHub 실패 메일) → 고치고 수동 실행.
 - 오타가 새로 발견되면 **글만 고치지 말고 `KNOWN_TYPOS` 에도 추가**한다. (이력: 2026-09-05 "특내"→특례, 2026-09-30 "이종근린생활시설"→제2종 근린생활시설)
 - 글을 새로 쓰거나 고치면 **커밋 전에 `DRY_RUN=1 python threads_post.py`** 로 검사를 통과시키고, 추가·수정한 글은 전문을 한 번 더 소리 내 읽듯 교정한다(목록은 아는 오타만 잡는다).
+
+## 9. 재발행 금지 ★ (2026-09-30 사용자 지시)
+
+- **한 번 나간 큐 글은 다시 발행하지 않는다.** `posted_log.json` 의 `posted_queue`(큐 번호)에 기록되고, 큐 선택은 날짜 서수 위치부터 **아직 안 나간 글**만 고른다.
+- 큐가 다 소진되면 **발행하지 않고 실패**(GitHub 실패 메일) → `posts_queue.json` 에 새 글을 추가해야 한다. 2026-09-30 기준 남은 새 글 10편 → **10/21(수)이 마지막, 10/23부터 새 글 필요.**
+- 오타 등으로 잘못 나간 글은 **삭제만** 한다(`delete_ids`). 정정본 재발행 안 함.
+- 큐 9번(9/21 양성화 소식)·10번(8/24 월세 200→1,000 사례)은 문구만 다른 같은 내용이라 발행된 것으로 처리.

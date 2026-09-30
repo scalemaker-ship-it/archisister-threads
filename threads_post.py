@@ -59,12 +59,26 @@ def load_posted_log() -> list[str]:
     return data.get("posted_dates", []) if isinstance(data, dict) else []
 
 
-def record_posted(date_str: str) -> None:
+def load_posted_queue() -> list[int]:
+    """이미 발행한 큐 번호(1부터). 한 번 나간 글은 다시 발행하지 않는다(2026-09-30 사용자 지시)."""
+    try:
+        with open(_POSTED_LOG_PATH, encoding="utf-8") as f:
+            data = json.load(f)
+    except (OSError, json.JSONDecodeError):
+        return []
+    return data.get("posted_queue", []) if isinstance(data, dict) else []
+
+
+def record_posted(date_str: str, queue_no: int | None = None) -> None:
     dates = load_posted_log()
     if date_str not in dates:
         dates.append(date_str)
+    done = load_posted_queue()
+    if queue_no is not None and queue_no not in done:
+        done.append(queue_no)
     with open(_POSTED_LOG_PATH, "w", encoding="utf-8") as f:
-        json.dump({"posted_dates": dates[-60:]}, f, ensure_ascii=False, indent=2)
+        json.dump({"posted_dates": dates[-60:], "posted_queue": sorted(done)},
+                  f, ensure_ascii=False, indent=2)
         f.write("\n")
 
 
@@ -275,24 +289,15 @@ def main() -> None:
         return
 
     # DELETE_IDS: 오타 등으로 잘못 나간 글 삭제(쉼표 구분 게시물 ID, 본문+본인 답글 모두 적는다).
-    # REPUBLISH_INDEX: 큐 N번 글을 날짜·요일과 무관하게 즉시 발행(삭제 후 정정본 재발행용).
-    # 둘 다 수동 실행 전용. posted_log 는 건드리지 않는다(정규 발행 일정 유지).
+    # 재발행 기능은 두지 않는다(2026-09-30 사용자 지시: 오타 글은 삭제만).
     delete_ids = [x.strip() for x in (os.environ.get("DELETE_IDS") or "").split(",") if x.strip()]
-    republish = (os.environ.get("REPUBLISH_INDEX") or "").strip()
-    if delete_ids or republish:
+    if delete_ids:
         tok = require_env("THREADS_ACCESS_TOKEN")
         for mid in delete_ids:
             r = requests.delete(f"{THREADS_API}/{mid}", params={"access_token": tok}, timeout=30)
             print(f"  삭제 {mid}: {r.status_code} {r.text[:200]}")
             if not r.ok:
-                sys.exit(f"[오류] {mid} 삭제 실패 — 재발행하지 않고 멈춥니다.")
-        if republish:
-            check_all_typos()
-            queue = load_queue()
-            post = queue[int(republish) - 1]
-            uid = require_env("THREADS_USER_ID")
-            main_id = post_to_threads(uid, tok, post)
-            print(f"큐 {republish}번 재발행 완료: {main_id}")
+                sys.exit(f"[오류] {mid} 삭제 실패.")
         return
 
     # REPORT: 게시하지 않고 최근 글 목록을 JSON 으로 덤프(발행 보고서 작성용).
@@ -385,7 +390,14 @@ def main() -> None:
         post = pinned
     else:
         queue = load_queue()
-        idx = now.date().toordinal() % len(queue)
+        done = set(load_posted_queue())
+        start = now.date().toordinal() % len(queue)
+        order = [(start + k) % len(queue) for k in range(len(queue))]
+        fresh = [i for i in order if i + 1 not in done]
+        if not fresh:
+            sys.exit("[오류] 큐의 글이 모두 발행됐습니다. 이미 나간 글은 재발행하지 않으므로 "
+                     "posts_queue.json 에 새 글을 추가해야 합니다.")
+        idx = fresh[0]
         post = queue[idx]
         print(f"[{now:%Y-%m-%d %H:%M KST}] 큐 글 {idx + 1}/{len(queue)} 게시(크레딧 미사용).")
 
@@ -404,7 +416,7 @@ def main() -> None:
         return
 
     main_id = post_to_threads(user_id, access_token, post)
-    record_posted(today)
+    record_posted(today, None if pinned is not None else idx + 1)
     print(f"게시 완료. 메인 Threads 게시물 ID: {main_id}")
 
 
