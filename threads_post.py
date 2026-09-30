@@ -102,6 +102,40 @@ def _all_text(post: dict) -> str:
     return "\n".join(p for p in parts if p)
 
 
+# 오타 차단 목록(틀린 표기 → 맞는 표기). 발행 전 전체 큐·예약글을 검사해
+# 하나라도 걸리면 아무것도 게시하지 않고 실패한다(GitHub 실패 메일로 알림).
+# 오타가 새로 발견되면 여기에 추가한다. (2026-09-05 "특내" 발행 사고 → 2026-09-30 도입)
+KNOWN_TYPOS = {
+    "특내": "특례", "특레": "특례", "특려": "특례", "특래": "특례", "틀례": "특례",
+    "특혜": "특례",
+    "이종근린": "제2종 근린", "일종근린": "제1종 근린",
+    "외도미 ": "외도민 ", "외도빈": "외도민", "외도밈": "외도민",
+    "용도번경": "용도변경", "용도변견": "용도변경",
+    "건축물대창": "건축물대장", "이행강재금": "이행강제금",
+    "호스탤": "호스텔",
+}
+
+
+def find_typos(post: dict) -> list[str]:
+    text = _all_text(post)
+    return [f"'{bad}' → '{good}'" for bad, good in KNOWN_TYPOS.items() if bad in text]
+
+
+def check_all_typos() -> None:
+    """큐 전체 + 예약글 전체를 검사. 오타가 있으면 종료 코드 1로 멈춘다."""
+    posts = [("큐", i, p) for i, p in enumerate(load_queue(), start=1)]
+    if os.path.exists(_PINNED_PATH):
+        with open(_PINNED_PATH, encoding="utf-8") as fp:
+            raw = json.load(fp)
+        posts += [("예약", p.get("date"), p) for p in (raw if isinstance(raw, list) else [raw])]
+    errors = [f"  {kind} {key}: {', '.join(hits)}"
+              for kind, key, p in posts if (hits := find_typos(p))]
+    if errors:
+        sys.exit("[오류] 오타가 발견돼 게시하지 않습니다. 고친 뒤 다시 실행하세요.\n"
+                 + "\n".join(errors))
+    print(f"[오타 검사] 통과 ({len(posts)}편)")
+
+
 def load_queue() -> list[dict]:
     """미리 써둔 글 큐(posts_queue.json)를 읽는다. Claude 호출 없음(크레딧 0)."""
     with open(_QUEUE_PATH, encoding="utf-8") as fp:
@@ -280,6 +314,7 @@ def main() -> None:
         return
 
     dry_run = _is_truthy(os.environ.get("DRY_RUN"))
+    check_all_typos()
     if dry_run:
         user_id = access_token = ""
         print("[DRY_RUN] 게시는 건너뛰고 오늘 나갈 글만 검증합니다.")
