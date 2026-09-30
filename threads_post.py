@@ -308,6 +308,24 @@ def main() -> None:
                     row["insights_error"] = ins.text[:200]
             except Exception as exc:  # noqa: BLE001
                 row["insights_error"] = str(exc)[:200]
+            # 이어쓰기·첫 댓글(본인 답글)까지 가져와 오타 검사에 쓴다.
+            try:
+                conv = requests.get(
+                    f"{THREADS_API}/{row['id']}/conversation",
+                    params={"fields": "id,text,username,timestamp", "access_token": tok},
+                    timeout=30,
+                )
+                if conv.ok:
+                    row["own_replies"] = [c for c in conv.json().get("data", [])
+                                          if c.get("username") == "archi.sister"]
+                else:
+                    row["replies_error"] = conv.text[:200]
+            except Exception as exc:  # noqa: BLE001
+                row["replies_error"] = str(exc)[:200]
+            all_text = "\n".join([row.get("text") or ""]
+                                 + [c.get("text") or "" for c in row.get("own_replies", [])])
+            if hits := find_typos({"main": all_text}):
+                print(f"[발행글 오타] {row.get('permalink')} : {', '.join(hits)}")
         print("REPORT_JSON_BEGIN")
         print(json.dumps(rows, ensure_ascii=False))
         print("REPORT_JSON_END")
