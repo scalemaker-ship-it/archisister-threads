@@ -281,6 +281,16 @@ def refresh_token() -> None:
     days = int(data.get("expires_in", 0)) // 86400
     same = data.get("access_token") == old
     print(f"[토큰 연장] 남은 유효기간 약 {days}일, 토큰 문자열 {'동일(시크릿 교체 불필요)' if same else '변경됨'}")
+    seal_key = os.environ.get("SEAL_KEY", "").strip()
+    if not same and seal_key:
+        # 레포 시크릿 공개키로 sealed box 암호화 → GitHub 만 복호화 가능. 로그에 찍어도 안전.
+        # 로컬에서: gh api -X PUT repos/<repo>/actions/secrets/THREADS_ACCESS_TOKEN
+        #           -f encrypted_value=<SEALED> -f key_id=<key_id>
+        from base64 import b64decode, b64encode
+        from nacl.public import PublicKey, SealedBox
+        box = SealedBox(PublicKey(b64decode(seal_key)))
+        sealed = b64encode(box.encrypt(data["access_token"].encode())).decode()
+        print(f"SEALED={sealed}")
 
 
 def main() -> None:
