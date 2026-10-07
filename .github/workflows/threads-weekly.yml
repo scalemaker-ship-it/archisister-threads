@@ -19,6 +19,10 @@ on:
         description: "게시 안 하고 토큰이 어느 계정인지 확인(진단용)"
         type: boolean
         default: false
+      refresh_token:
+        description: "게시 안 하고 토큰 만료일만 60일 연장"
+        type: boolean
+        default: false
       report:
         description: "게시 안 하고 최근 글 목록을 JSON 으로 덤프(보고서용)"
         type: boolean
@@ -68,6 +72,7 @@ jobs:
           DRY_RUN: ${{ inputs.dry_run }}
           CHECK_TOKEN: ${{ inputs.check_token }}
           REPORT: ${{ inputs.report }}
+          REFRESH_TOKEN: ${{ inputs.refresh_token }}
           DELETE_IDS: ${{ inputs.delete_ids }}
         run: python threads_post.py
 

@@ -265,7 +265,29 @@ def post_to_threads(user_id: str, access_token: str, post: dict) -> str:
     return main_id
 
 
+def refresh_token() -> None:
+    """장기 토큰 만료일을 60일 연장한다(Threads refresh_access_token).
+
+    토큰 값은 로그에 절대 찍지 않는다(public 레포). 새 토큰 문자열이 기존과 같으면
+    시크릿 교체 없이 만료일만 늘어난 것이다.
+    """
+    old = require_env("THREADS_ACCESS_TOKEN")
+    r = requests.get("https://graph.threads.net/refresh_access_token",
+                     params={"grant_type": "th_refresh_token", "access_token": old},
+                     timeout=30)
+    if r.status_code != 200:
+        sys.exit(f"[토큰 연장 실패] HTTP {r.status_code}: {r.text[:300]}")
+    data = r.json()
+    days = int(data.get("expires_in", 0)) // 86400
+    same = data.get("access_token") == old
+    print(f"[토큰 연장] 남은 유효기간 약 {days}일, 토큰 문자열 {'동일(시크릿 교체 불필요)' if same else '변경됨'}")
+
+
 def main() -> None:
+    if _is_truthy(os.environ.get("REFRESH_TOKEN")):
+        refresh_token()
+        return
+
     # CHECK_TOKEN: 게시하지 않고 THREADS 토큰이 어느 계정에 물렸는지 확인(진단용).
     if _is_truthy(os.environ.get("CHECK_TOKEN")):
         uid = require_env("THREADS_USER_ID")
