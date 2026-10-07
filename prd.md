@@ -12,14 +12,14 @@
 | 소재 원천 | 유튜브 [@archi.sister](https://www.youtube.com/@archi.sister) — 용도변경·건축 인허가 |
 | 저장소 | `scalemaker-ship-it/archisister-threads` (public) |
 | 로컬 | `~/Desktop/kim/건축언니스레드자동화` |
-| 발행 | **월·수·금 20:00 KST**, 하루 1건 |
+| 발행 | **월·수·금 15:00 KST**(낮 3시), 하루 1건 — 2026-10-07 20시→15시 변경 |
 | 비용 | Claude API 미사용 (미리 작성한 큐에서 발행 → 크레딧 0) |
 
 ## 2. 발행 파이프라인
 
 ```
-GitHub Actions 크론 (0 11 * * 1,3,5 = 20:00 KST)
-  └ 0~30분 랜덤 지연 (자정 넘긴 지연 실행이면 생략)
+GitHub Actions 크론 (0 2·0 4 * * 1,3,5 = 11·13시 KST 기동, concurrency 직렬화)
+  └ 15:00 KST 까지 대기 + 0~10분 랜덤 (이미 15시 넘겨 떴으면 즉시)
       └ threads_post.py
           ├ 1. 발행일 판정        resolve_post_date()
           ├ 2. 중복 발행 차단      posted_log.json
@@ -88,7 +88,7 @@ curl -sI <raw_url> | head -1                                # ⑤ 200 확인
 2. §3-1 로 자료 화면을 캡처한다.
 3. `pinned_post.json` 에 `date` + `image_url` + 본문/이어쓰기/첫 댓글을 넣는다.
    날짜는 **월·수·금**으로 잡는다(예약은 요일을 무시할 수 있지만 기본 리듬을 지킨다).
-4. 커밋·푸시. 크론이 그날 20시에 알아서 발행한다.
+4. 커밋·푸시. 크론이 그날 15시에 알아서 발행한다.
 5. `DRY_RUN=1 python threads_post.py` 로 오늘 나갈 글을 검증할 수 있다.
 
 ## 5. 운영·진단

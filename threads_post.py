@@ -85,7 +85,7 @@ def record_posted(date_str: str, queue_no: int | None = None) -> None:
 def resolve_post_date(now: datetime) -> datetime | None:
     """발행 대상 날짜를 정한다.
 
-    크론(11:00 UTC = 20:00 KST)이 밀려 자정을 넘겨 실행되는 일이 잦다.
+    크론이 크게 밀려 자정을 넘겨 실행되는 일이 잦다.
     오늘이 발행 요일이 아니면, LATE_RUN_GRACE_HOURS 안쪽에서 전날이
     발행 요일이었는지 보고 그 날 몫으로 발행한다.
     """
