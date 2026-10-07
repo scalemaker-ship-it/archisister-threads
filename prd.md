@@ -101,8 +101,16 @@ curl -sI <raw_url> | head -1                                # ⑤ 200 확인
 | `... -f report=true` | 최근 글 전체를 JSON 덤프(발행 보고서용) |
 | `gh run list --repo scalemaker-ship-it/archisister-threads` | 실행 이력 |
 
-- **토큰 만료**: `THREADS_ACCESS_TOKEN` 은 약 60일. 2026-08-16 발급 → **2026년 10월 중순 재발급**.
-  절차는 오산/빵찌 자동화와 동일(Meta 앱 → 토큰 생성기 → `gh secret set`).
+- **토큰 만료**: `THREADS_ACCESS_TOKEN` 은 약 60일. **2026-10-07 API 연장(브라우저 불필요) → 2026년 12월 초 만료**.
+  연장 절차(만료 전에만 가능, 토큰 값은 로그에 안 찍힘):
+  ```bash
+  R=scalemaker-ship-it/archisister-threads
+  K=$(gh api repos/$R/actions/secrets/public-key)
+  gh workflow run threads-weekly.yml -R $R -f refresh_token=true -f seal_key="$(echo $K | jq -r .key)"
+  # 실행 로그의 SEALED=... 값을 그대로:
+  gh api -X PUT repos/$R/actions/secrets/THREADS_ACCESS_TOKEN -f encrypted_value=<SEALED> -f key_id="$(echo $K | jq -r .key_id)"
+  ```
+  이미 만료됐으면 오산/빵찌와 같은 Meta 앱 토큰 생성기 절차로 새로 발급한다.
 - **발행 보고서**: 노션 「건축언니(@archi.sister) 스레드 발행 보고서」
   (발행 날짜 / 주제 / 이미지 유무 / 링크). `report=true` 덤프로 갱신한다.
 - 리포스트(재게시)는 계정 주인이 직접 하는 활동이라 자동화·보고서 집계에서 제외한다.
