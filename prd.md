@@ -18,7 +18,7 @@
 ## 2. 발행 파이프라인
 
 ```
-GitHub Actions 크론 (0 2·0 4 * * 1,3,5 = 11·13시 KST 기동, concurrency 직렬화)
+GitHub Actions 크론 (11·13·14:30시 KST 기동 + 17·20시 안전망, concurrency 직렬화)
   └ 15:00 KST 까지 대기 + 0~10분 랜덤 (이미 15시 넘겨 떴으면 즉시)
       └ threads_post.py
           ├ 1. 발행일 판정        resolve_post_date()
