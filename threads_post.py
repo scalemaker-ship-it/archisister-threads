@@ -185,7 +185,7 @@ def load_pinned_post(today: str, now: datetime | None = None) -> dict | None:
     for data in candidates:
         if data.get("date") != today:
             continue
-        if not data.get("main"):
+        if not data.get("main") and not data.get("from_queue"):
             print("[경고] pinned_post.json 의 오늘자 항목에 main 이 없어 큐로 진행합니다.")
             return None
         after = data.get("post_after")
@@ -416,6 +416,11 @@ def main() -> None:
     if not dry_run and today in load_posted_log():
         print(f"{today} 몫은 이미 발행했습니다(posted_log.json). 중복 발행하지 않고 종료합니다.")
         return
+
+    # "from_queue": true 예약 = 요일 밖 예외 발행일. 글은 큐에서 평소처럼 뽑는다.
+    if pinned is not None and pinned.get("from_queue"):
+        print(f"[{now:%Y-%m-%d %H:%M KST}] 예외 발행일(pinned_post.json from_queue) → 큐 글로 게시.")
+        pinned = None
 
     if pinned is not None:
         print(f"[{now:%Y-%m-%d %H:%M KST}] 고정 글(pinned_post.json)을 게시합니다.")

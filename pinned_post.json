@@ -120,6 +120,12 @@
     "correction_note": "2026-09-25 정정: 1단계 '특례 운영'은 공유숙박 특례 접수가 막혀 더 이상 유효하지 않음. 재사용 시 아래 정정본으로."
   },
   {
+    "date": "2026-10-10",
+    "post_after": "15:00",
+    "from_queue": true,
+    "_memo": "10/7(수) 누락분 예외 발행 — 토요일 15시, 큐 글 사용"
+  },
+  {
     "date": "2026-10-26",
     "image_url": "https://raw.githubusercontent.com/scalemaker-ship-it/archisister-threads/main/images/g7yVuVD_qZQ.jpg",
     "image_note": "영상 내 자료 화면 캡처 (393초 지점, 5가지 기준 요약 카드)",
