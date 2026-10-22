@@ -38,6 +38,24 @@ THREADS_API = "https://graph.threads.net/v1.0"
 
 _BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 _QUEUE_PATH = os.path.join(_BASE_DIR, "posts_queue.json")
+
+# 검색 키워드 꼬리말 (2026-10-23 사용자 지시: 구글에서 "용도변경", "호스텔 용도변경",
+# "용산 용도변경" 검색 시 글이 잡히도록). 본문(main) 맨 끝에 자동으로 붙는다.
+# 글 항목에 "no_footer": true 가 있으면 붙이지 않는다. 이미 꼬리말이 있으면 중복 삽입 안 함.
+SEO_FOOTER = "용산 건축사 건축언니\n호스텔 용도변경, 용산 용도변경 궁금하면 프로필 링크"
+SEO_KEYWORDS = ("용도변경", "호스텔 용도변경", "용산 용도변경")
+
+
+def apply_seo_footer(post: dict) -> dict:
+    """main 끝에 SEO_FOOTER 를 붙인다(옵트아웃: no_footer)."""
+    if post.get("no_footer"):
+        return post
+    main = (post.get("main") or "").rstrip()
+    if SEO_FOOTER in main:
+        return post
+    post["main"] = f"{main}\n\n{SEO_FOOTER}"
+    return post
+
 _PINNED_PATH = os.path.join(_BASE_DIR, "pinned_post.json")
 _POSTED_LOG_PATH = os.path.join(_BASE_DIR, "posted_log.json")
 
@@ -437,6 +455,11 @@ def main() -> None:
         idx = fresh[0]
         post = queue[idx]
         print(f"[{now:%Y-%m-%d %H:%M KST}] 큐 글 {idx + 1}/{len(queue)} 게시(크레딧 미사용).")
+
+    post = apply_seo_footer(post)
+    missing = [k for k in SEO_KEYWORDS if k not in post["main"]]
+    if missing:
+        print(f"[경고] 본문에 키워드 누락: {missing}")
 
     print("=== 게시될 글 ===")
     print(post["main"])
