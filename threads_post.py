@@ -446,7 +446,7 @@ def main() -> None:
     else:
         queue = load_queue()
         done = set(load_posted_queue())
-        start = now.date().toordinal() % len(queue)
+        start = 0  # 번호 순서대로 발행(2026-10-23, 건축사님 확정 10편)
         order = [(start + k) % len(queue) for k in range(len(queue))]
         fresh = [i for i in order if i + 1 not in done]
         if not fresh:
