@@ -106,4 +106,12 @@ jobs:
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
           git add posted_log.json
           git commit -m "chore: 발행 기록 갱신"
-          git push
+          # 같은 시각에 다른 커밋이 올라오면 push 가 거부돼 기록이 유실되고
+          # 다음 크론이 같은 글을 재발행한다(2026-10-26 중복 사고). rebase 후 재시도.
+          for i in 1 2 3 4 5; do
+            git push && exit 0
+            echo "push 거부됨($i/5) → 원격 변경 가져와 재시도"
+            git pull --rebase -X theirs origin main || git rebase --abort
+            sleep 5
+          done
+          echo "::error::발행 기록 push 실패 (5회)"; exit 1
